@@ -1,6 +1,6 @@
 import numpy as np
 
-# Universal funcs in Numpy
+# Universal funcs in Numpy https://numpy.org/doc/stable/reference/ufuncs.html
 np1 = np.array([4,16,36,64,128,333,4,1])
 neg = np.array([-4,-16,-36,64,-128,333,4,0])
 
@@ -26,3 +26,9 @@ print(np.tanh(np1))
 
 # logarithmic log / log2 / log10 / logn via np.emath
 print(np.log(np1))
+
+# Greatest Common Divisor / Lowest Common Multiple
+print(np.gcd(np1,neg))
+print(np.lcm(np1,neg))
+
+#Also there are bitwise operations, comparisons, logical funcs, float funcs
