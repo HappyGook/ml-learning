@@ -8,7 +8,7 @@ def bowl(x):
 
 # f(x,y) = x^2 + 10y^2
 def valley(x):
-    return x[0]**2 - 10*x[1]**2
+    return x[0]**2 + 10*x[1]**2
 
 # f(x,y) = (1 - x)^2 + 100(y-x^2)^2
 def rosenbrock(x):

@@ -47,13 +47,34 @@ def render_paths(function, classic, momentum):
     plt.show()
 
 # Run of the project
-
+# Pre-defined configs, to avoid random exploding by user inputs
 configs = {
-    1: {"f": f.bowl, "grad": f.grad_bowl},
-    2: {"f": f.valley, "grad": f.grad_valley},
-    3: {"f": f.rosenbrock, "grad": f.grad_rb},
-    4: {"f": f.saddle, "grad": f.grad_saddle},
+    1: {
+        "f": f.bowl, "grad": f.grad_bowl,
+        "step": 0.08, "iters": 40, "alpha": 0.9,
+        "x0": np.array([-1.5, 1.5]),
+        "domain": (-2, 2),
+    },
+    2: {
+        "f": f.valley, "grad": f.grad_valley,
+        "step": 0.04, "iters": 60, "alpha": 0.9,
+        "x0": np.array([-1.5, 0.5]),   # off-axis for better zigzags
+        "domain": (-2, 2),
+    },
+    3: {
+        "f": f.rosenbrock, "grad": f.grad_rb,
+        "step": 0.001, "iters": 500, "alpha": 0.9,
+        "x0": np.array([-1.0, 1.0]),
+        "domain": (-2, 2),
+    },
+    4: {
+        "f": f.saddle, "grad": f.grad_saddle,
+        "step": 0.08, "iters": 40, "alpha": 0.9,
+        "x0": np.array([0.5, 0.2]),    # asymetry for saddle dynamics
+        "domain": (-2, 2),
+    },
 }
+
 choice = 0
 while not 1<=choice<=4:
     choice = int(input("Choose which surface function do you want to compute a descent for:\n"
@@ -62,6 +83,7 @@ while not 1<=choice<=4:
                    "3 - Rosenbrock valley (f(x,y) = (1 - x)^2 + 100(y-x^2)^2)\n"
                    "4 - Saddle (f(x,y) = x^2 - y^2)\n"))
 
+"""
 step_size = float(input("Step size: "))
 iterations = int(input("Number of iterations:"))
 alpha = float(input("Choose an alpha for momentum descent: "))
@@ -69,8 +91,14 @@ x0 = np.array([
     float(input("Initial position (X): ")),
     float(input("Initial position (Y): "))
 ])
+"""
 
+# Load config values
 cfg = configs[choice]
+step_size = cfg['step']
+iterations = cfg['iters']
+alpha = cfg['alpha']
+x0 = cfg['x0']
 gradient = cfg["grad"]
 func = cfg["f"]
 
