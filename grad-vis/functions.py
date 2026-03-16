@@ -10,14 +10,15 @@ def bowl(x):
 def valley(x):
     return x[0]**2 + 10*x[1]**2
 
-# f(x,y) = (1 - x)^2 + 100(y-x^2)^2
+# f(x,y) = 1/10*(1 - x)^2 + 5*(y-x^2)^2
 # smoothened for better visuals
 def rosenbrock(x):
     return 1/10*(1-x[0])**2 + 5*(x[1]-x[0]**2)**2
 
 #f(x,y) = x^2 - y^2
+# smoothened for better visuals
 def saddle(x):
-    return x[0]**2 - x[1]**2
+    return x[0]**2 - 0.1*x[1]**2
 
 # Gradients of the surface functions
 def grad_bowl(x):
@@ -28,9 +29,9 @@ def grad_valley(x):
 
 def grad_rb(x):
     return np.array([
-        -2*(1-x[0]) - 400*x[0]*(x[1]-x[0]**2),
-        200*(x[1] - x[0]**2)
+        -2/10*(1-x[0]) - 20*x[0]*(x[1]-x[0]**2),
+        10*(x[1] - x[0]**2)
     ])
 
 def grad_saddle(x):
-    return np.array([2*x[0], -2*x[1]])
+    return np.array([2*x[0], -0.2*x[1]])
