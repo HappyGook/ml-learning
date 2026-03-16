@@ -51,25 +51,25 @@ def render_paths(function, classic, momentum):
 configs = {
     1: {
         "f": f.bowl, "grad": f.grad_bowl,
-        "step": 0.08, "iters": 40, "alpha": 0.9,
+        "step": 0.08, "iters": 40, "alpha": 0.4,
         "x0": np.array([-1.5, 1.5]),
         "domain": (-2, 2),
     },
     2: {
         "f": f.valley, "grad": f.grad_valley,
-        "step": 0.04, "iters": 60, "alpha": 0.9,
+        "step": 0.04, "iters": 60, "alpha": 0.4,
         "x0": np.array([-1.5, 0.5]),   # off-axis for better zigzags
         "domain": (-2, 2),
     },
     3: {
         "f": f.rosenbrock, "grad": f.grad_rb,
-        "step": 0.001, "iters": 500, "alpha": 0.9,
-        "x0": np.array([-1.0, 1.0]),
+        "step": 0.001, "iters": 60, "alpha": 0.4,
+        "x0": np.array([-1.5, -2.0]),
         "domain": (-2, 2),
     },
     4: {
         "f": f.saddle, "grad": f.grad_saddle,
-        "step": 0.08, "iters": 40, "alpha": 0.9,
+        "step": 0.08, "iters": 40, "alpha": 0.4,
         "x0": np.array([0.5, 0.2]),    # asymetry for saddle dynamics
         "domain": (-2, 2),
     },

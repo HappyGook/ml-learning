@@ -10,7 +10,6 @@ class GradientScene(ThreeDScene):
         self.momentum_path = momentum_path
 
     def construct(self):
-        self.set_camera_orientation(phi=65 * DEGREES, theta=45 * DEGREES)
 
         axes = ThreeDAxes(
             x_range=[-3, 3, 1],
@@ -22,6 +21,16 @@ class GradientScene(ThreeDScene):
         surface = self.create_surface(axes, self.func)
         surface.set_style(fill_opacity=0.6, stroke_color=GRAY)
         self.add(surface)
+
+        # Take the min point to aim the camera towards
+        xm, ym = self.classic_path[-1]
+        zm = self.func([xm, ym])
+        min_point = axes.c2p(xm,ym,zm)
+
+        self.set_camera_orientation(phi=75 * DEGREES, theta=-60 * DEGREES)
+
+        self.move_camera(frame_center=min_point)
+
 
         ball_gd = Sphere(radius=0.07)
         ball_gd.set_color(BLUE)
@@ -69,18 +78,8 @@ class GradientScene(ThreeDScene):
             z1 = self.func([x1, y1])
             z2 = self.func([x2, y2])
 
-            # pan camera toward the midpoint of the two balls
-            mid = axes.c2p(
-                (x1 + x2) / 2,
-                (y1 + y2) / 2,
-                (z1 + z2) / 2,
-            )
-
-            self.move_camera(
-                frame_center=mid,
+            self.play(
+                ball_gd.animate.move_to(axes.c2p(x1, y1, self.func([x1, y1]))),
+                ball_momentum.animate.move_to(axes.c2p(x2, y2, self.func([x2, y2]))),
                 run_time=0.2,
-                added_anims=[
-                    ball_gd.animate.move_to(axes.c2p(x1, y1, z1)),
-                    ball_momentum.animate.move_to(axes.c2p(x2, y2, z2)),
-                ]
             )

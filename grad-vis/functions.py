@@ -11,8 +11,9 @@ def valley(x):
     return x[0]**2 + 10*x[1]**2
 
 # f(x,y) = (1 - x)^2 + 100(y-x^2)^2
+# smoothened for better visuals
 def rosenbrock(x):
-    return (1-x[0])**2 + 100*(x[1]-x[0]**2)**2
+    return 1/10*(1-x[0])**2 + 5*(x[1]-x[0]**2)**2
 
 #f(x,y) = x^2 - y^2
 def saddle(x):
