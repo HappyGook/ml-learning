@@ -148,3 +148,41 @@ There are 3 main types of probabilistic graphical models:
 
 ## Model Selection
 
+Model selection presents mechanisms to assert how a model generalises to unseen data.
+
+If for each split in cross-validation, it is again split and cross-validated, the process is called a **nested cross-validation.** 
+
+The inner level in it is used to estimate a performance of a particular choice of model or hyperparameter on the internal validation set. The outer layer estimates the generalisation performance of the best choice of model (chosen in inner loop). 
+
+The set used to estimate the generalisation performance is called the **test set**, and the one used to choose the best model is called the **validation set**.
+
+The model is chosen in inner loop based on the expected value of the generalisation error $R(\mathcal{V}|M)$ for it. The error $R(\mathcal{V}|M)$ is approximated with the empirical error on the validation set $\mathcal{V}$ for model $M$:
+	$\mathbb{E}_{\mathcal{V}} R(\mathcal{V}|M) \approx \cfrac{1}{K} \displaystyle\sum_{k=1}^{K}R(\mathcal{V}^{(k)}|M)$   
+
+The goal is always to find the simplest model that explain the data well (Occam's razor) <- Can also be explained as finding the simplest hypothesis that is consistent.
+
+**Bayesian model selection** for a set of models $M=\lbrace M_1, ..., M_K\rbrace$, where each model $M_K$ has params $\theta$ , goes as follows:
+1. The prior is placed on the set of models $p(M)$ - model-distro becomes a random variable with each $p(M_k)$ showing how well the model explains the data
+2. The data is generated from the model
+	$M_k \sim p(M)$ <-- uncertainty of model
+	$\downarrow$
+	$\theta_k \sim p(\theta|M_k)$ <-- uncertainty of parameters within the model
+	$\downarrow$
+	$\mathcal{D} \sim p(\mathcal{D}|\theta_k)$ <-- Data-generating distro under $M$ and $\theta$ 
+	
+	>The full joint distribution looks as $p(\mathcal{D}, \theta, M) = p(M)\, p(\theta \mid M)\, p(\mathcal{D} \mid \theta, M)$
+
+Given a training set $\mathcal{D}$, the Bayes' is applied to compute the posterior over models:
+	$p(M_k|\mathcal{D}) ∝ p(M_k)p(\mathcal{D}|M_k)$ , this posterior is independent of $\theta$, which was marginalised in the following marginal likelihood $\downarrow$
+	
+	$p(\mathcal{D}|M_k) = \int p(\mathcal{D}|\theta_k)p(\theta_k|M_k)d\theta_k$
+	where $p(\theta_k|M_k)$ is the prior distro of parameters $\theta_k$ of the model $M_k$ 
+	Marginal likelihood automatically embodies a trade-off between the complexity of model and data fit.
+
+Then, from the posterior $p(M_k|\mathcal{D})$ the MAP is estimated as
+	$M^*=argmax_{M_k} p(M_k|\mathcal{D})$ 
+
+Two probabilistic models can be compared with **Bayes Factors**. For this, the ratio of their posteriors is computed
+	$\underbrace{\cfrac{p(M_1|\mathcal{D})}{p(M_2|\mathcal{D})}}_{posterior~odds} = \underbrace{\cfrac{p(M_1)}{p(M_2)} }_{prior~odds} ~\underbrace{\cfrac{p(\mathcal{D}|M_1)}{p(\mathcal{D}|M_2)}}_{Bayes factor}$ 
+
+Based on the posterior odds, a model is chosen.
