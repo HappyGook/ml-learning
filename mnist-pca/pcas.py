@@ -4,7 +4,7 @@ from scipy.linalg import eig, eigvals
 
 def pca(x, n_components):
     # Subtract mean
-    m = x.m(axis=0)
+    m = np.mean(x, axis=0)
     xc = x - m
 
     # covariance matrix
@@ -15,6 +15,8 @@ def pca(x, n_components):
 
     # sort indices and revers the array (largest values first)
     idx = np.argsort(eigvals)[::-1]
+    eigvals = eigvals[idx]
+
     eigvecs = eigvecs[:,idx] # columns reordered to have the vectors with biggest values first
 
     # new coordinate matrix (matrix of transformation)
