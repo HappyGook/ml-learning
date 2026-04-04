@@ -141,4 +141,35 @@ If there are no examples directly on the margin, $|y_n-\langle w^*,x_n \rangle|$
 	Support vectors are examples for which $\alpha_n > 0$, since they support the hyperplane.
 	And examples $x_n$ for which $\alpha_n=0$ don't contribute to the solution $w$.
 
-386
+The dual SVM can be obtained via an **alternative geometric argument**. For a set of examples $x_n$ with the same labels a convex set is built that contains all examples such that it is the smallest possible set. (convex hull)
+
+The convex combination of three points $x_1,x_2,x_3$ with corresponding weights $\alpha_1,\alpha_2,\alpha_3 \geqslant 0$ such that $\sum_{n=1}^3a_n=1$ spans a two-dim area. The convex hull of this area is the triangle formed by the edges corresponding to each pair of points. More points => more dimensions or (if points don't add dimensions), they will lie inside the convex hull. 
+
+The convex hull can be described as the set
+	$conv(X)=\bigg \lbrace \displaystyle\sum_{n=1}^N~\alpha_nx_n \bigg \rbrace$ with $\displaystyle\sum_{n=1}^N~\alpha_n=1$ and $\alpha_n=0$ for all $n=1,...,N$ 
+
+If the two clouds of points corresponding to positive and negative classes are separated, convex hulls won't overlap. For the training data $(x_1, y_1), . . . , (x_N , y_N )$ two convex hulls are formed (for pos and neg classes). Point $c$ is defined as the one in positive set, but closest to the negative class distribution, and similarly a $d$ from the negative set is chosen. A difference between $c$ and $d$ is then
+	$w:=c-d$
+	
+The distance is then minimised, corresponding optimisation problem is
+	$arg~\underset{w}{min}||w|| = arg~\underset{w}{min}\cfrac{1}{2}||w||$ 
+
+Since $c$ is inside the positive hull, it can be represented as a linear combo of positive examples, i.e. for non-negative coefficients $\alpha_n^+$ 
+	$c=\displaystyle\sum_{n:y_n=+1}a_n^+x_n$ 
+	$n:y_n=+1$ means that the set of indices for which $y_n=1$ 
+
+For d the same method is applied
+	$d=\displaystyle\sum_{n:y_n=-1}a_n^-x_n$ 
+
+By substituting, the objective becomes
+	$\underset{\alpha}{min}\cfrac{1}{2} \bigg | \bigg |$ $\displaystyle\sum_{n:y_n=+1}a_n^+x_n$ $-$ $\displaystyle\sum_{n:y_n=-1}a_n^-x_n$ $\bigg | \bigg |^2$ 
+	with $\alpha$ being the set of both $\alpha^+$ and $\alpha^-$ 
+
+Since the sum of each coefficient type is 1, i.e.
+	$\displaystyle\sum_{n:y_n=+1}\alpha_n^+=1$ and $\displaystyle\sum_{n:y_n=-1} \alpha_n^-=1$ 
+	the constraint is
+	$\displaystyle\sum_{n=1}^Ny_n\alpha_n=0$ 
+
+This yields the constrained convex optimisation problem that is the same as dual hard margin SVM.
+
+Additionally, the inputs can be non-linearly transformed via kernels, which allows for a linear separating hyperplane problem even though the resulting decision boundary is not linear.

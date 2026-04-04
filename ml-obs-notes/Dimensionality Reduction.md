@@ -195,7 +195,7 @@ We assume a continuous latent variable $z \in \mathbb R^M$ with standard-normal 
 	$\epsilon \sim \mathcal N(0,\sigma^2I)$ is Gaussian observation noise
 	$B \in \mathbb R ^{D \times M}$ and $\mu \in \mathbb R^D$ describe linear/affine mapping from latent to observed vars. 
 
-Latent and observed variables are linked via
+	Latent and observed variables are linked via
 	$p(x|z,B,\mu,\sigma^2)=\mathcal N (x|Bz + \mu,\sigma^2I)$ 
 
 And generative process looks like this overall
