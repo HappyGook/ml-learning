@@ -7,14 +7,16 @@ import pcas
 X_train = X_train / 255.0
 X_test = X_test / 255.0
 
-# reshape for pca
-X_train = X_train.reshape(X_train.shape[0], -1)
-X_test = X_test.reshape(X_test.shape[0], -1)
+digit = 5
+mask = (y_train == digit)
+X_digit = X_train[mask]
+y_digit = y_train[mask]
 
-print(X_train.shape, X_test.shape)
+# reshape for pca
+X_digit = X_digit.reshape(X_digit.shape[0], -1)
 
 for i in range(1,10):
-    z,b,m,eigvals = pcas.pca(X_train,i)
+    z,b,m,eigvals = pcas.pca(X_digit,i)
 
     x = pcas.generate_from_pca(b,m,eigvals,i)
 
