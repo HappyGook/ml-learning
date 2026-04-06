@@ -1,0 +1,70 @@
+import numpy as np
+import scipy
+
+
+
+class Model:
+    def __init__(self,k,X):
+        self.k = k
+        self.X = X
+
+    #TODO: reasonable init
+    Rs = np.array([[]])
+    means = np.array([])
+    covariances = np.array([])
+    weights = np.array([])
+
+    # method to compute gaussians efficiently (ish)
+    def compute_log_gaussian(self):
+        N, D = self.X.shape
+        K = self.means.shape[0]
+
+        log_probs = np.zeros((N, K))
+
+        for k in range(K):
+            diff = self.X - self.means[k]  # (N, D)
+            inv = np.linalg.inv(self.covariances[k])  # (D, D)
+            log_det = np.linalg.slogdet(self.covariances[k])[1]
+
+            quad = np.sum(diff @ inv * diff, axis=1)  # (N,)
+
+            log_probs[:, k] = -0.5 * (quad + log_det + D * np.log(2 * np.pi))
+
+        return log_probs
+
+    def e_step(self):
+        # everything is computed in log-space
+        log_probs = self.compute_log_gaussian()
+
+        # weights[k] * gaussian_density
+        log_probs += np.log(self.weights) # add the priors (weights)
+
+        # take the largest component score for each data point
+        max_log = np.max(log_probs, axis=1, keepdims=True)
+
+        # denominator
+        log_sum = max_log + np.log(np.sum(np.exp(log_probs - max_log), axis=1, keepdims=True))
+
+        log_resp = log_probs - log_sum
+
+        # exit log space via exponentiating
+        self.Rs = np.exp(log_resp)
+
+
+    def m_step(self):
+
+        N,D = self.X.shape
+        K = self.Rs.shape[1]
+
+        # update weights
+        Nk = np.sum(self.Rs, axis=0) # (K,)
+        self.weights = Nk / N
+
+        #update means
+        self.means = (self.Rs.T @ self.X) / Nk[:,None] # for (K,D)
+
+        #update covariances
+        for k in range(K):
+            diff = self.X - self.means[k]
+            self.covariances[k]=(self.Rs[:,k][:,None]*diff).T @ diff / Nk[k]
+            self.covariances[k] +=1e-6 * np.eye(D)
