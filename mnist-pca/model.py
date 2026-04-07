@@ -14,9 +14,8 @@ class Model:
 
     # method to compute gaussians efficiently (ish)
     def compute_log_gaussian(self):
-        N, D = self.X.shape
 
-        log_probs = np.zeros((N, self.k))
+        log_probs = np.zeros((self.n, self.k))
 
         for k in range(self.k):
             diff = self.X - self.means[k]  # (N, D)
@@ -25,7 +24,7 @@ class Model:
 
             quad = np.sum(diff @ inv * diff, axis=1)  # (N,)
 
-            log_probs[:, k] = -0.5 * (quad + log_det + D * np.log(2 * np.pi))
+            log_probs[:, k] = -0.5 * (quad + log_det + self.d * np.log(2 * np.pi))
 
         return log_probs
 
@@ -50,18 +49,15 @@ class Model:
 
     def m_step(self):
 
-        N,D = self.X.shape
-        K = self.Rs.shape[1]
-
         # update weights
-        Nk = np.sum(self.Rs, axis=0) # (K,)
-        self.weights = Nk / N
+        nk = np.sum(self.Rs, axis=0) # (K,)
+        self.weights = nk / self.n
 
         #update means
-        self.means = (self.Rs.T @ self.X) / Nk[:,None] # for (K,D)
+        self.means = (self.Rs.T @ self.X) / nk[:,None] # for (K,D)
 
         #update covariances
-        for k in range(K):
+        for k in range(self.k):
             diff = self.X - self.means[k]
-            self.covariances[k]=(self.Rs[:,k][:,None]*diff).T @ diff / Nk[k]
-            self.covariances[k] +=1e-6 * np.eye(D)
+            self.covariances[k]=(self.Rs[:,k][:,None]*diff).T @ diff / nk[k]
+            self.covariances[k] +=1e-6 * np.eye(self.d)
