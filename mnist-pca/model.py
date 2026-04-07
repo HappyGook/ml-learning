@@ -1,27 +1,24 @@
 import numpy as np
-import scipy
-
 
 
 class Model:
     def __init__(self,k,X):
         self.k = k
         self.X = X
-
-    #TODO: reasonable init
-    Rs = np.array([[]])
-    means = np.array([])
-    covariances = np.array([])
-    weights = np.array([])
+        self.n = X.shape[0]
+        self.d = X.shape[1]
+        self.Rs = np.array([[]])
+        self.means = X[np.random.choice(self.n,self.k,replace=False)]
+        self.covariances = np.array([np.eye(self.d) for _ in range(self.k)])
+        self.weights = np.ones(self.k)/ self.k
 
     # method to compute gaussians efficiently (ish)
     def compute_log_gaussian(self):
         N, D = self.X.shape
-        K = self.means.shape[0]
 
-        log_probs = np.zeros((N, K))
+        log_probs = np.zeros((N, self.k))
 
-        for k in range(K):
+        for k in range(self.k):
             diff = self.X - self.means[k]  # (N, D)
             inv = np.linalg.inv(self.covariances[k])  # (D, D)
             log_det = np.linalg.slogdet(self.covariances[k])[1]
