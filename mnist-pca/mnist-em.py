@@ -9,7 +9,7 @@ import threeDplot
 X_train = X_train / 255.0
 X_test = X_test / 255.0
 
-digit = 7
+digit = 1
 mask = (y_train == digit)
 X_digit = X_train[mask]
 y_digit = y_train[mask]
@@ -17,11 +17,11 @@ y_digit = y_train[mask]
 # reshape for pca
 X_digit = X_digit.reshape(X_digit.shape[0], -1)
 
-dimensions = 3
+dimensions = 2
 
 z,b,m,eigvals = pcas.pca(X_digit,dimensions)
 
-mixture_components = 4
+mixture_components = 3
 model = model.Model(mixture_components, z)
 
 # run EM for multiple iterations
