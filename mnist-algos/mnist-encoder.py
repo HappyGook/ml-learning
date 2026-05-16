@@ -183,32 +183,40 @@ class AutoEncoder:
             W4=self.W4, W5=self.W5, W6=self.W6,
             b1=self.b1, b2=self.b2, b3=self.b3,
             b4=self.b4, b5=self.b5, b6=self.b6,
-            beta1=self.beta1, beta2=self.beta2,
-            eps=self.eps, m=self.m, v=self.v, t=self.t
+            # first moments
+            m_W1=self.m['W1'], m_W2=self.m['W2'], m_W3=self.m['W3'],
+            m_W4=self.m['W4'], m_W5=self.m['W5'], m_W6=self.m['W6'],
+            m_b1=self.m['b1'], m_b2=self.m['b2'], m_b3=self.m['b3'],
+            m_b4=self.m['b4'], m_b5=self.m['b5'], m_b6=self.m['b6'],
+            # second moments
+            v_W1=self.v['W1'], v_W2=self.v['W2'], v_W3=self.v['W3'],
+            v_W4=self.v['W4'], v_W5=self.v['W5'], v_W6=self.v['W6'],
+            v_b1=self.v['b1'], v_b2=self.v['b2'], v_b3=self.v['b3'],
+            v_b4=self.v['b4'], v_b5=self.v['b5'], v_b6=self.v['b6'],
+            # timestamp
+            t=np.array(self.t),
         )
 
     def load(self, path):
         data = np.load(path)
+        self.W1, self.W2, self.W3 = data['W1'], data['W2'], data['W3']
+        self.W4, self.W5, self.W6 = data['W4'], data['W5'], data['W6']
+        self.b1, self.b2, self.b3 = data['b1'], data['b2'], data['b3']
+        self.b4, self.b5, self.b6 = data['b4'], data['b5'], data['b6']
 
-        self.W1 = data['W1']
-        self.W2 = data['W2']
-        self.W3 = data['W3']
-        self.W4 = data['W4']
-        self.W5 = data['W5']
-        self.W6 = data['W6']
-
-        self.b1 = data['b1']
-        self.b2 = data['b2']
-        self.b3 = data['b3']
-        self.b4 = data['b4']
-        self.b5 = data['b5']
-        self.b6 = data['b6']
-        self.beta1 = data['beta1']
-        self.beta2 = data['beta2']
-        self.eps = data['eps']
-        self.m = data['m']
-        self.v = data['v']
-        self.t = data['t']
+        self.m = {
+            'W1': data['m_W1'], 'W2': data['m_W2'], 'W3': data['m_W3'],
+            'W4': data['m_W4'], 'W5': data['m_W5'], 'W6': data['m_W6'],
+            'b1': data['m_b1'], 'b2': data['m_b2'], 'b3': data['m_b3'],
+            'b4': data['m_b4'], 'b5': data['m_b5'], 'b6': data['m_b6'],
+        }
+        self.v = {
+            'W1': data['v_W1'], 'W2': data['v_W2'], 'W3': data['v_W3'],
+            'W4': data['v_W4'], 'W5': data['v_W5'], 'W6': data['v_W6'],
+            'b1': data['v_b1'], 'b2': data['v_b2'], 'b3': data['v_b3'],
+            'b4': data['v_b4'], 'b5': data['v_b5'], 'b6': data['v_b6'],
+        }
+        self.t = int(data['t'])
 
 
 def encode_dataset(encoder, dataset, labels, max_samples=None):
