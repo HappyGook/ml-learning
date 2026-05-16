@@ -1,5 +1,6 @@
 import numpy as np
-from matplotlib import pyplot as plt
+from matplotlib import pyplot as plt, cm
+from sklearn.decomposition import PCA
 from tensorflow.keras.datasets import mnist
 
 
@@ -20,7 +21,7 @@ def relu_derivative(x):
     return (x > 0).astype(float)
 
 class AutoEncoder:
-    def __init__(self, learning_rate = 0.001):
+    def __init__(self, learning_rate = 0.001, beta1=0.9, beta2=0.999, eps=1e-8):
         self.out = None
         self.a6 = None
         self.h5 = None
@@ -52,6 +53,22 @@ class AutoEncoder:
         self.b4 = np.zeros(64)
         self.b5 = np.zeros(256)
         self.b6 = np.zeros(784)
+
+        self.beta1, self.beta2, self.eps = beta1, beta2, eps
+        self.t = 0  # timestep
+
+        # first and second moment buffers for every parameter
+        self._init_adam_buffers()
+
+    def _init_adam_buffers(self):
+        shapes = {
+            'W1': (256, 784), 'W2': (64, 256), 'W3': (16, 64),
+            'W4': (64, 16), 'W5': (256, 64), 'W6': (784, 256),
+            'b1': (256,), 'b2': (64,), 'b3': (16,),
+            'b4': (64,), 'b5': (256,), 'b6': (784,),
+        }
+        self.m = {k: np.zeros(s) for k, s in shapes.items()}
+        self.v = {k: np.zeros(s) for k, s in shapes.items()}
 
     def encode(self, X):
         self.x = X.flatten()
@@ -93,7 +110,15 @@ class AutoEncoder:
         flat_decoded = decoded.flatten()
         return np.mean((flat_x - flat_decoded) ** 2)
 
+    def _adam_step(self, param_name, grad):
+        self.m[param_name] = self.beta1 * self.m[param_name] + (1 - self.beta1) * grad
+        self.v[param_name] = self.beta2 * self.v[param_name] + (1 - self.beta2) * grad ** 2
+        m_hat = self.m[param_name] / (1 - self.beta1 ** self.t)
+        v_hat = self.v[param_name] / (1 - self.beta2 ** self.t)
+        return self.lr * m_hat / (np.sqrt(v_hat) + self.eps)
+
     def backprop(self):
+        self.t += 1
         n = self.x.size
 
         # output layer
@@ -127,25 +152,15 @@ class AutoEncoder:
         dW1 = np.outer(delta1, self.x)
         db1 = delta1
 
-
-        # Gradient descent
-        self.W6 -= self.lr * dW6
-        self.b6 -= self.lr * db6
-
-        self.W5 -= self.lr * dW5
-        self.b5 -= self.lr * db5
-
-        self.W4 -= self.lr * dW4
-        self.b4 -= self.lr * db4
-
-        self.W3 -= self.lr * dW3
-        self.b3 -= self.lr * db3
-
-        self.W2 -= self.lr * dW2
-        self.b2 -= self.lr * db2
-
-        self.W1 -= self.lr * dW1
-        self.b1 -= self.lr * db1
+        # Adam updates
+        for name, grad, attr in [
+            ('W6', dW6, 'W6'), ('b6', db6, 'b6'),
+            ('W5', dW5, 'W5'), ('b5', db5, 'b5'),
+            ('W4', dW4, 'W4'), ('b4', db4, 'b4'),
+            ('W3', dW3, 'W3'), ('b3', db3, 'b3'),
+            ('W2', dW2, 'W2'), ('b2', db2, 'b2'),
+            ('W1', dW1, 'W1'), ('b1', db1, 'b1'),
+        ]: setattr(self, attr, getattr(self, attr) - self._adam_step(name, grad))
 
     def fit(self, dataset, epochs, batch_size=32):
         for epoch in range(epochs):
@@ -167,7 +182,9 @@ class AutoEncoder:
             W1=self.W1, W2=self.W2, W3=self.W3,
             W4=self.W4, W5=self.W5, W6=self.W6,
             b1=self.b1, b2=self.b2, b3=self.b3,
-            b4=self.b4, b5=self.b5, b6=self.b6
+            b4=self.b4, b5=self.b5, b6=self.b6,
+            beta1=self.beta1, beta2=self.beta2,
+            eps=self.eps, m=self.m, v=self.v, t=self.t
         )
 
     def load(self, path):
@@ -186,7 +203,58 @@ class AutoEncoder:
         self.b4 = data['b4']
         self.b5 = data['b5']
         self.b6 = data['b6']
+        self.beta1 = data['beta1']
+        self.beta2 = data['beta2']
+        self.eps = data['eps']
+        self.m = data['m']
+        self.v = data['v']
+        self.t = data['t']
 
+
+def encode_dataset(encoder, dataset, labels, max_samples=None):
+    if max_samples is not None:
+        idx = np.random.choice(len(dataset), max_samples, replace=False)
+        dataset, labels = dataset[idx], labels[idx]
+
+    embeddings = []
+    for image in dataset:
+        z = encoder.encode(image)
+        embeddings.append(z.copy())  # .copy() since encode() stores state in-place
+
+    return np.array(embeddings), np.array(labels)
+
+
+def plot_latent_pca(embeddings, labels, title="PCA projection (2D)"):
+    pca = PCA(n_components=2)
+    projected = pca.fit_transform(embeddings)       # shape: (N, 2)
+    var_explained = pca.explained_variance_ratio_
+    print(f"PCA explained variance: PC1={var_explained[0]:.3f}, PC2={var_explained[1]:.3f} "
+          f"(total={sum(var_explained):.3f})")
+
+    scatter(projected[:, 0], projected[:, 1], labels,
+             xlabel=f"PC1 ({var_explained[0]*100:.1f}% var)",
+             ylabel=f"PC2 ({var_explained[1]*100:.1f}% var)",
+             title=title)
+
+
+def scatter(x, y, labels, xlabel, ylabel, title):
+    fig, ax = plt.subplots(figsize=(9, 7))
+    colors = cm.get_cmap("tab10", 10)
+
+    for digit in range(10):
+        mask = labels == digit
+        ax.scatter(x[mask], y[mask],
+                   c=[colors(digit)],
+                   label=str(digit),
+                   s=6,
+                   alpha=0.5)
+
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    ax.set_title(title)
+    ax.legend(title="Digit", markerscale=3, bbox_to_anchor=(1.05, 1), loc="upper left")
+    plt.tight_layout()
+    plt.show()
 
 if __name__ == "__main__":
     (X_train, y_train), (X_test, y_test) = mnist.load_data()
@@ -196,11 +264,11 @@ if __name__ == "__main__":
     ae = AutoEncoder()
     choice = input("Would you like to train an autoencoder? (y/n): ")
     if choice == "y":
-        ae.fit(X_train, 10)
-        ae.save("mnist_autoencoder.npz")
+        ae.fit(X_train, 5)
+        ae.save("mnist_adam_autoencoder.npz")
 
     else:
-        ae.load("mnist_autoencoder.npz")
+        ae.load("mnist_adam_autoencoder.npz")
 
         encoded = ae.encode(X_test[16])
         encoded2 = ae.encode(X_test[15])
@@ -213,3 +281,6 @@ if __name__ == "__main__":
         plt.title(f"Autoencoder output of the number {y_test[15]}")
         plt.axis("off")
         plt.show()
+
+        embeddings, labels = encode_dataset(ae, X_test, y_test, max_samples=2000)
+        plot_latent_pca(embeddings, labels)
