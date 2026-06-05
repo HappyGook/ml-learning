@@ -204,19 +204,22 @@ class AutoEncoder:
         self.b1, self.b2, self.b3 = data['b1'], data['b2'], data['b3']
         self.b4, self.b5, self.b6 = data['b4'], data['b5'], data['b6']
 
-        self.m = {
-            'W1': data['m_W1'], 'W2': data['m_W2'], 'W3': data['m_W3'],
-            'W4': data['m_W4'], 'W5': data['m_W5'], 'W6': data['m_W6'],
-            'b1': data['m_b1'], 'b2': data['m_b2'], 'b3': data['m_b3'],
-            'b4': data['m_b4'], 'b5': data['m_b5'], 'b6': data['m_b6'],
-        }
-        self.v = {
-            'W1': data['v_W1'], 'W2': data['v_W2'], 'W3': data['v_W3'],
-            'W4': data['v_W4'], 'W5': data['v_W5'], 'W6': data['v_W6'],
-            'b1': data['v_b1'], 'b2': data['v_b2'], 'b3': data['v_b3'],
-            'b4': data['v_b4'], 'b5': data['v_b5'], 'b6': data['v_b6'],
-        }
-        self.t = int(data['t'])
+        try:
+            self.m = {
+                'W1': data['m_W1'], 'W2': data['m_W2'], 'W3': data['m_W3'],
+                'W4': data['m_W4'], 'W5': data['m_W5'], 'W6': data['m_W6'],
+                'b1': data['m_b1'], 'b2': data['m_b2'], 'b3': data['m_b3'],
+                'b4': data['m_b4'], 'b5': data['m_b5'], 'b6': data['m_b6'],
+            }
+            self.v = {
+                'W1': data['v_W1'], 'W2': data['v_W2'], 'W3': data['v_W3'],
+                'W4': data['v_W4'], 'W5': data['v_W5'], 'W6': data['v_W6'],
+                'b1': data['v_b1'], 'b2': data['v_b2'], 'b3': data['v_b3'],
+                'b4': data['v_b4'], 'b5': data['v_b5'], 'b6': data['v_b6'],
+            }
+            self.t = int(data['t'])
+        except Exception as e:
+            print(e)
 
 
 def encode_dataset(encoder, dataset, labels, max_samples=None):
@@ -272,22 +275,38 @@ if __name__ == "__main__":
     ae = AutoEncoder()
     choice = input("Would you like to train an autoencoder? (y/n): ")
     if choice == "y":
+        ae.load("mnist_adam_autoencoder.npz")
         ae.fit(X_train, 5)
         ae.save("mnist_adam_autoencoder.npz")
 
     else:
         ae.load("mnist_adam_autoencoder.npz")
 
-        encoded = ae.encode(X_test[16])
-        encoded2 = ae.encode(X_test[15])
-        print(encoded)
-        print(encoded2)
-        decoded = ae.decode(encoded)
-        decoded2 = ae.decode(encoded2)
-        plt.subplot(1, 10, 1)
-        plt.imshow(decoded2, cmap="gray")
-        plt.title(f"Autoencoder output of the number {y_test[15]}")
-        plt.axis("off")
+        random1 = np.random.randint(0, len(X_test))
+        random2 = np.random.randint(0, len(X_test))
+
+        decoded = ae.decode(ae.encode(X_test[random1]))
+        decoded2 = ae.decode(ae.encode(X_test[random2]))
+
+        fig, axes = plt.subplots(2, 2, figsize=(5, 5))
+
+        axes[0, 0].imshow(X_test[random1], cmap="gray")
+        axes[0, 0].set_title(f"Original: {y_test[random1]}")
+        axes[0, 0].axis("off")
+
+        axes[0, 1].imshow(decoded, cmap="gray")
+        axes[0, 1].set_title(f"Reconstructed: {y_test[random1]}")
+        axes[0, 1].axis("off")
+
+        axes[1, 0].imshow(X_test[random2], cmap="gray")
+        axes[1, 0].set_title(f"Original: {y_test[random2]}")
+        axes[1, 0].axis("off")
+
+        axes[1, 1].imshow(decoded2, cmap="gray")
+        axes[1, 1].set_title(f"Reconstructed: {y_test[random2]}")
+        axes[1, 1].axis("off")
+
+        plt.tight_layout()
         plt.show()
 
         embeddings, labels = encode_dataset(ae, X_test, y_test, max_samples=2000)
